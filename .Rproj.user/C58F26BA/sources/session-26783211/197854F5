@@ -1,0 +1,27 @@
+{
+    "id": "197854F5",
+    "path": "~/Blockchain Analysis/Crypto_Policy_Africa_Report/arima_model.R",
+    "project_path": "arima_model.R",
+    "type": "r_source",
+    "hash": "166049617",
+    "contents": "",
+    "dirty": false,
+    "created": 1753346589230.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "174,0",
+        "scrollLine": "147"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1753356696,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1753356696556,
+    "read_only": false,
+    "read_only_alternatives": []
+}

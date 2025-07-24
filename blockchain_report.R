@@ -1,0 +1,1594 @@
+# Load required libraries
+library(readr)
+library(dplyr)
+library(stringr)
+
+# Define the file path
+file_path <- "C:/Users/iHUB/Downloads/cleaned_and_categorized_crypto_policies_africa_new - cleaned_and_categorized_crypto_policies_africa.csv"
+
+# Read the CSV
+crypto_data <- read_csv(file_path)
+
+crypto_data <- crypto_data %>%
+  mutate(Publisher.Organization = if_else(
+    Publisher.Organization == "Not specified",
+    "Google Scholar",
+    Publisher.Organization
+  ))
+
+View(crypto_data)
+
+unique(crypto_data$Thematic.Areas)
+crypto_data %>% filter(is.na(Year) | Year < 2000 | Year > 2025)
+
+
+crypto_data <- crypto_data %>%
+  mutate(Year = if_else(
+    Year == 2026,
+    2025,
+    Year
+  ))
+
+# Load required packages
+library(dplyr)
+library(ggplot2)
+unique(crypto_data$Main_Category)
+
+
+# View all rows where Main_Category is 'Uncategorized'
+uncategorized_rows <- crypto_data %>%
+  filter(Main_Category == "Uncategorized")
+
+# Display the result
+print(uncategorized_rows, n=Inf)
+View(uncategorized_rows)
+crypto_data <- crypto_data %>%
+  mutate(
+    Main_Category = case_when(
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("CBDC|Central Bank|Monetary Policy", ignore_case = TRUE)) ~ "CBDC & Monetary Policy",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Tax|Taxation|Revenue", ignore_case = TRUE)) ~ "Taxation",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Environment|Energy|Sustainability|Mining", ignore_case = TRUE)) ~ "Environmental & Energy Impact",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Agriculture|Healthcare|Art|NFT|Gaming|Metaverse|Supply Chain|Sector|Use Case", ignore_case = TRUE)) ~ "Sector-Specific Applications",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Integration|Geopolitics|Pan-African|Cross-border|Cooperation|Regional", ignore_case = TRUE)) ~ "Regional Integration & Geopolitics",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Remittance|Market|Herding|Hyperinflation|Volatility|Case Study", ignore_case = TRUE)) ~ "Economic & Financial Impact",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Risk|Crime|Consumer|Illicit|Security|Sanctions|Protection", ignore_case = TRUE)) ~ "Risk, Security & Consumer Protection",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Inclusion|Gender|Social|Education|Awareness|Culture|Sociology|Protest", ignore_case = TRUE)) ~ "Financial Inclusion & Social Impact",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Infrastructure|Protocol|DLT|Wallet|Exchange|Blockchain|R&D|Node|Tokenization", ignore_case = TRUE)) ~ "Blockchain & Digital Infrastructure",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Digital Economy|Tech|Identity|E-commerce|Mobile Money|Data Governance|Digital Services", ignore_case = TRUE)) ~ "Digital Economy & Tech Policy",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Innovation|Startup|Fintech|Adoption|Entrepreneurship|Trends", ignore_case = TRUE)) ~ "Innovation & Adoption Trends",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Regulation|Law|Policy|Prohibition|Licensing|Clarification|Legal|Governance|Compliance", ignore_case = TRUE)) ~ "Regulation, Law & Compliance",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Regulatory Landscape|Regulatory Divergence", ignore_case = TRUE)) ~ "Regulation, Law & Compliance",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Behavioral Finance", ignore_case = TRUE)) ~ "Economic & Financial Impact",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("Celebrity Projects|Hype", ignore_case = TRUE)) ~ "Innovation & Adoption Trends",
+      Main_Category == "Uncategorized" & str_detect(Thematic.Areas, regex("State-Sponsored Crypto", ignore_case = TRUE)) ~ "CBDC & Monetary Policy",
+      TRUE ~ Main_Category  # Keep existing category
+    )
+  )
+crypto_data %>%
+  filter(Main_Category == "Uncategorized")
+
+
+
+library(dplyr)
+library(ggplot2)
+
+# Ensure Year is numeric (in case it's a string)
+crypto_data$Year <- as.numeric(crypto_data$Year)
+
+library(dplyr)
+library(ggplot2)
+
+# Ensure 'Year' is numeric
+crypto_data$Year <- as.numeric(crypto_data$Year)
+
+# Filter from 2017 onwards (omit 2015 and earlier)
+crypto_data_filtered <- crypto_data %>%
+  filter(Year >= 2017)
+
+# Count number of documents per year
+yearly_counts <- crypto_data_filtered %>%
+  count(Year)
+
+# Create the bar plot
+ggplot(yearly_counts, aes(x = as.factor(Year), y = n)) +
+  geom_col(fill = "#3182bd") +
+  geom_text(aes(label = n), vjust = -0.3, size = 4.5, color = "black") +
+  labs(
+    title = "Blockchain & Crypto Policy Documents on Africa (2017–2025)",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    axis.title.x = element_text(face = "bold"),
+    axis.title.y = element_text(face = "bold")
+  ) +
+  ylim(0, max(yearly_counts$n) + 2)  # Add space for text labels
+
+
+crypto_data %>%
+  count(Country, sort = TRUE)
+
+# View column names and data types
+glimpse(crypto_data)
+
+# Check first few rows
+head(crypto_data)
+
+# Summary statistics
+summary(crypto_data)
+
+# Check for missing values
+colSums(is.na(crypto_data))
+
+library(tidyverse)
+
+# Filter relevant years (2018 onward)
+plot_data <- crypto_data %>%
+  filter(Year >= 2018 & Year <= 2025) %>%
+  group_by(Year, Publisher.Category) %>%
+  summarise(Document_Count = n(), .groups = "drop")
+
+# Define custom colors for key categories
+custom_colors <- c(
+  "Government & Regulators" = "#31a354",     # Light green
+  "Academia & Research" = "#e6550d",          # Orange
+  "International Bodies (IGO)" = "#3182bd",   # Blue
+  "Others" = "#bdbdbd"                        # Grey for any other group
+)
+
+# Simplify/Group lesser categories under "Others" if needed
+plot_data <- plot_data %>%
+  mutate(Publisher.Category = case_when(
+    Publisher.Category %in% names(custom_colors) ~ Publisher.Category,
+    TRUE ~ "Others"
+  ))
+
+# Make Publisher.Category a factor to control order in plot
+plot_data$Publisher.Category <- factor(plot_data$Publisher.Category,
+                                       levels = c("Government & Regulators", "Academia & Research",
+                                                  "International Bodies (IGO)", "Others"))
+
+# Plot
+ggplot(plot_data, aes(x = factor(Year), y = Document_Count, fill = Publisher.Category)) +
+  geom_col(position = "dodge", width = 0.75) +
+  geom_text(aes(label = Document_Count),
+            position = position_dodge(width = 0.75),
+            vjust = -0.3, size = 3.5) +
+  scale_fill_manual(values = custom_colors) +
+  labs(
+    title = "Figure 4: Who Leads the Digital Asset Policy Conversation in Africa?",
+    subtitle = "From 2018 to 2025, Government & Regulators have emerged as dominant voices in crypto policy.",
+    x = "Year", y = "Number of Documents",
+    fill = "Publisher Category"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    axis.text.x = element_text(angle = 0),
+    legend.position = "top"
+  )
+
+library(dplyr)
+
+# Step 1: Define known African publishers
+african_publishers <- c(
+  "Central Bank of Nigeria", "Capital Markets Authority Kenya", "Bank of Ghana",
+  "National Bank of Rwanda", "Central Bank of Kenya", "CBK", "CMA", 
+  "ECOWAS", "African Union", "University of Cape Town", "Strathmore University",
+  "UN Economic Commission for Africa"
+)
+
+# Step 2: Add a column to tag origin
+crypto_data <- crypto_data %>%
+  mutate(
+    Publisher_Origin = case_when(
+      Publisher.Organization %in% african_publishers ~ "African",
+      TRUE ~ "International"
+    )
+  )
+
+
+
+View(crypto_data)
+
+
+
+library(ggplot2)
+
+# Filter to relevant years and count
+origin_plot_data <- crypto_data %>%
+  filter(Year >= 2017) %>%
+  count(Year, Publisher_Origin)
+
+# Plot
+ggplot(origin_plot_data, aes(x = factor(Year), y = n, fill = Publisher_Origin)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = n), position = position_dodge(width = 0.9), vjust = -0.3) +
+  labs(
+    title = "Local vs. International Publishers of Crypto Policy Documents (2017–2025)",
+    x = "Year", y = "Number of Documents",
+    fill = "Publisher Origin"
+  ) +
+  scale_fill_manual(values = c("African" = "#31a354", "International" = "#3182bd")) +
+  theme_minimal(base_size = 12)
+
+
+
+
+# Count documents by origin
+origin_summary <- crypto_data %>%
+  count(Publisher_Origin)
+
+
+
+library(ggplot2)
+library(dplyr)
+
+# Identify the majority category
+majority_origin <- origin_summary %>%
+  arrange(desc(n)) %>%
+  slice(1)
+
+majority_label <- majority_origin$Publisher_Origin
+majority_n <- majority_origin$n
+total_n <- sum(origin_summary$n)
+majority_pct <- round(100 * majority_n / total_n, 1)
+
+# Color logic: red for majority, black for minority
+origin_summary <- origin_summary %>%
+  mutate(color = ifelse(Publisher_Origin == majority_label, "red", "black"))
+
+# Plot
+ggplot(origin_summary, aes(x = "", y = n, fill = Publisher_Origin)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  # No geom_text here – removed outer labels
+  scale_fill_manual(
+    values = setNames(origin_summary$color, origin_summary$Publisher_Origin)
+  ) +
+  annotate(
+    "text", x = 0, y = 0, label = paste0(majority_pct, "%"),
+    size = 8, fontface = "bold", color = "red"
+  ) +
+  labs(
+    title = "Who Publishes Africa's Crypto Policy Documents?",
+    fill = "Publisher Origin",
+    x = NULL, y = NULL
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    legend.position = "right",
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 11)
+  )
+
+
+
+
+
+
+library(ggplot2)
+library(dplyr)
+
+# Enhanced horizontal bar plot
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_col(fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.2, color = "black", size = 4.2) +
+  coord_flip() +
+  labs(
+    title = "Top Thematic Areas in Crypto Policy Documents",
+    subtitle = "Based on frequency of Main Category classification",
+    x = NULL, y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, margin = margin(b = 10)),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 11),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 20, 10, 10)
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))
+
+# Save as CSV in working directory
+readr::write_csv(crypto_data, "clean_crypto_data_africa.csv")
+
+
+
+# Load required libraries
+library(tidyverse)
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Plot: Number of Documents by Year (flipped)
+crypto_data %>%
+  count(Year, sort = FALSE) %>%
+  ggplot(aes(x = reorder(as.factor(Year), n), y = n)) +
+  geom_col(fill = "#3182bd") +
+  coord_flip() +
+  labs(
+    title = "Crypto & Blockchain Policy Documents in Africa by Year",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14)
+
+
+
+
+# Load required libraries
+library(tidyverse)
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create plot
+crypto_data %>%
+  count(Year) %>%
+  complete(Year = 2016:max(Year), fill = list(n = 0)) %>%  # Ensure all years are shown
+  ggplot(aes(x = n, y = factor(Year))) +
+  geom_col(fill = "#1f78b4", width = 0.8, alpha = 0.9) +
+  geom_text(
+    aes(label = n), 
+    hjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_y_discrete(limits = rev) +  # Correct chronological order
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +  # Space for labels
+  labs(
+    title = "Crypto & Blockchain Policy Development in Africa (2016-2023)",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = "Number of Documents",
+    y = NULL,
+    caption = "Data Source: clean_crypto_data_africa.csv"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    plot.caption = element_text(color = "gray50", margin = margin(t = 10)),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.line.x = element_line(color = "gray50"),
+    axis.ticks.x = element_line(color = "gray50"),
+    axis.text = element_text(color = "black"),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+
+
+# Load required libraries
+library(tidyverse)
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create plot
+crypto_data %>%
+  count(Year) %>%
+  complete(Year = 2016:max(Year), fill = list(n = 0)) %>%
+  mutate(Year = fct_reorder(factor(Year), n)) %>%  # Order years by count (descending)
+  ggplot(aes(x = n, y = Year)) +
+  geom_col(fill = "#1f78b4", width = 0.8, alpha = 0.9) +
+  geom_text(
+    aes(label = n), 
+    hjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +  # Space for labels
+  labs(
+    title = "Crypto & Blockchain Policy Development in Africa (2016–2023)",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = "Number of Documents",
+    y = NULL,
+    caption = "Data Source: clean_crypto_data_africa.csv"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    plot.caption = element_text(color = "gray50", margin = margin(t = 10)),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.line.x = element_line(color = "gray50"),
+    axis.ticks.x = element_line(color = "gray50"),
+    axis.text = element_text(color = "black"),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+
+
+# Load required libraries
+library(tidyverse)
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create plot
+crypto_data %>%
+  count(Year) %>%
+  filter(Year != 2016) %>%  # ✅ Remove 2016
+  mutate(Year = fct_reorder(factor(Year), n)) %>%  # Descending order
+  ggplot(aes(x = n, y = Year)) +
+  geom_col(fill = "#1f78b4", width = 0.8, alpha = 0.9) +
+  geom_text(
+    aes(label = n), 
+    hjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +  # Space for labels
+  labs(
+    title = "Crypto & Blockchain Policy Development on Africa",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = NULL,
+    y = NULL,
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    plot.caption = element_text(color = "gray50", margin = margin(t = 10)),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),  # ✅ Remove x-axis numbers
+    axis.text.y = element_text(color = "black", size = 12),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+
+# Load required libraries
+library(tidyverse)
+library(ggchicklet)  # For rounded bar ends
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create plot with rounded bars
+crypto_data %>%
+  count(Year) %>%
+  filter(Year != 2016) %>%
+  mutate(Year = fct_reorder(factor(Year), n)) %>%
+  ggplot(aes(x = n, y = Year)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#1f78b4", width = 0.8, alpha = 0.9) +  # Rounded edges
+  geom_text(
+    aes(label = n), 
+    hjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Crypto & Blockchain Policy Development on Africa",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    plot.caption = element_text(color = "gray50", margin = margin(t = 10)),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_text(color = "black", size = 12),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+# Load required libraries
+library(tidyverse)
+library(ggchicklet)  # Assumes you’ve installed from GitHub
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create vertical bar plot
+crypto_data %>%
+  count(Year) %>%
+  filter(Year != 2016) %>%
+  mutate(Year = fct_reorder(factor(Year), Year)) %>%
+  ggplot(aes(x = Year, y = n)) +
+  geom_chicklet(
+    radius = grid::unit(5, "pt"),
+    fill = "#1f78b4",
+    width = 0.7,
+    alpha = 0.95
+  ) +
+  geom_text(
+    aes(label = n),
+    vjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Crypto & Blockchain Policy Development on Africa",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    axis.text = element_text(color = "black"),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+# Load required libraries
+library(tidyverse)
+library(ggchicklet)  # Assumes you’ve installed from GitHub
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create vertical bar plot without y-axis tick numbers
+crypto_data %>%
+  count(Year) %>%
+  filter(Year != 2016) %>%
+  mutate(Year = fct_reorder(factor(Year), Year)) %>%
+  ggplot(aes(x = Year, y = n)) +
+  geom_chicklet(
+    radius = grid::unit(5, "pt"),
+    fill = "#1f78b4",
+    width = 0.7,
+    alpha = 0.95
+  ) +
+  geom_text(
+    aes(label = n),
+    vjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Crypto & Blockchain Policy Development on Africa",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    axis.text = element_text(color = "black"),
+    axis.text.y = element_blank(),  # Remove y-axis tick labels
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+
+
+# Load required libraries
+library(tidyverse)
+
+# Load the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Filter relevant years and count documents per category per year
+plot_data <- crypto_data %>%
+  filter(Year >= 2018, Year <= 2025) %>%
+  count(Year, Main_Category)
+
+# Set a color palette for up to 10 categories
+unique_categories <- unique(plot_data$Main_Category)
+
+palette <- c(
+  "#1f78b4", "#d4af37", "#e6550d", "#cb181d", "#6a51a3",
+  "#31a354", "#ff7f00", "#525252", "#a6cee3", "#fb9a99"
+)
+names(palette) <- unique_categories[1:length(palette)]
+
+# Plot: one chart with multiple lines
+ggplot(plot_data, aes(x = Year, y = n, color = Main_Category)) +
+  geom_line(size = 1.5) +
+  geom_point(size = 3) +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1, alpha = 0.4) +
+  scale_color_manual(values = palette) +
+  scale_x_continuous(breaks = 2018:2025) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Thematic Trends in African Digital Asset Policy (2018–2025)",
+    subtitle = "Combined view of yearly document trends across thematic areas",
+    x = "Year",
+    y = "Number of Documents",
+    color = "Thematic Area"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 13, hjust = 0.5, color = "gray30", margin = margin(b = 10)),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    legend.title = element_text(face = "bold"),
+    legend.position = "right",
+    legend.key.height = unit(0.6, "cm"),
+    legend.key.width = unit(0.8, "cm"),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+
+
+# Load required libraries
+library(tidyverse)
+
+# Load the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Prepare the data
+plot_data <- crypto_data %>%
+  filter(Year >= 2015, Year <= 2025) %>%
+  count(Year, Main_Category)
+
+# Color palette (for consistency, even though legend is removed in facets)
+unique_categories <- unique(plot_data$Main_Category)
+palette <- c(
+  "#1f78b4", "#d4af37", "#e6550d", "#cb181d", "#6a51a3",
+  "#31a354", "#ff7f00", "#525252", "#a6cee3", "#fb9a99"
+)
+names(palette) <- unique_categories[1:length(palette)]
+
+# Plot faceted line chart
+ggplot(plot_data, aes(x = Year, y = n, group = Main_Category, color = Main_Category)) +
+  geom_line(size = 1.3) +
+  geom_point(size = 2.5) +
+  geom_smooth(method = "loess", se = FALSE, linetype = "dashed", size = 1, alpha = 0.4) +
+  facet_wrap(~ Main_Category, scales = "free_y", ncol = 3) +  # 3 columns for better readability
+  scale_color_manual(values = palette) +
+  scale_x_continuous(breaks = seq(2015, 2025, 2)) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Thematic Trends in African Digital Asset Policy (2015–2025)",
+    subtitle = "Each panel shows document trends per thematic area",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 13, hjust = 0.5, color = "gray30", margin = margin(b = 12)),
+    strip.text = element_text(size = 12, face = "bold", color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "none",
+    panel.spacing = unit(1.2, "lines"),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+library(tidyverse)
+
+# Load data
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Filter years 2015–2025 and count by year and sector
+publisher_data <- crypto_data %>%
+  filter(Year >= 2015, Year <= 2025) %>%
+  count(Year, Publisher_Origin)
+
+# Define color palette
+sector_palette <- c(
+  "Government" = "#1f78b4",
+  "Private" = "#33a02c",
+  "Academic" = "#ff7f00",
+  "NGO" = "#6a3d9a",
+  "Multilateral" = "#b15928",
+  "Other" = "#a6cee3"
+)
+
+# Plot: Stacked bar by publisher sector
+ggplot(publisher_data, aes(x = as.factor(Year), y = n, fill = Publisher_Origin)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  scale_fill_manual(values = sector_palette) +
+  labs(
+    title = "Figure 4. Composition of Document Publishers by Sector (2015–2025)",
+    x = "Year",
+    y = "Number of Documents",
+    fill = "Publisher Sector"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom",
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+
+
+# Load libraries
+library(tidyverse)
+
+# Load data
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Step 1: Classify Publisher Organizations into Broad Sectors
+# Create a lookup function for sector classification
+classify_sector <- function(publisher) {
+  publisher <- str_to_lower(publisher)
+  
+  if (str_detect(publisher, "ministry|government|parliament|central bank|national treasury|regulator|authority|revenue|presidency|assembly|legislature|pbo")) {
+    return("Government & Regulators")
+  } else if (str_detect(publisher, "united nations|african union|sadc|eac|ecowas|world bank|imf|afdb|fsc|fatf|bis|giaba|ifwg|cobac|beac|who")) {
+    return("International Bodies (IGO)")
+  } else if (str_detect(publisher, "university|journal|institute|arxiv|academic|research|oxford|harvard|mit|elsevier|cambridge|duke|science|study")) {
+    return("Academia & Research")
+  } else if (str_detect(publisher, "chainalysis|cointelegraph|ethereum|bitcoin|electric capital|consensys|kucoin|luno|iohk|cv vc|techcabal|rest of world|the economist|google scholar|stea")) {
+    return("Private Sector / Industry")
+  } else {
+    return("Other / Mixed")
+  }
+}
+
+# Apply classification
+crypto_data <- crypto_data %>%
+  mutate(Publisher_Sector = map_chr(Publisher.Organization, classify_sector))
+
+# Step 2: Summarize data by Year and Sector
+sector_plot_data <- crypto_data %>%
+  filter(Year >= 2015 & Year <= 2025) %>%
+  count(Year, Publisher_Sector)
+
+# Step 3: Plot - Figure 4
+ggplot(sector_plot_data, aes(x = Year, y = n, fill = Publisher_Sector)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.7) +
+  scale_fill_manual(values = c(
+    "Government & Regulators" = "#66c2a5",
+    "Academia & Research" = "#fc8d62",
+    "International Bodies (IGO)" = "#8da0cb",
+    "Private Sector / Industry" = "#e78ac3",
+    "Other / Mixed" = "#a6d854"
+  )) +
+  scale_x_continuous(breaks = 2015:2025) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)), labels = scales::number_format(accuracy = 1)) +
+  labs(
+    title = "Figure 4. Composition of Document Publishers by Sector (2015–2025)",
+    subtitle = "Annual document count by publisher sector",
+    x = "Year",
+    y = "Number of Documents",
+    fill = "Publisher Sector"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, margin = margin(b = 15)),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.text = element_text(color = "black"),
+    legend.position = "right",
+    legend.title = element_text(face = "bold"),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+# Load libraries
+library(tidyverse)
+
+# Load your dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Classify Publisher Organizations into Broad Sectors
+classify_sector <- function(publisher) {
+  publisher <- str_to_lower(publisher)
+  if (str_detect(publisher, "ministry|government|parliament|central bank|national treasury|regulator|authority|revenue|presidency|assembly|legislature|pbo")) {
+    return("Government & Regulators")
+  } else if (str_detect(publisher, "united nations|african union|sadc|eac|ecowas|world bank|imf|afdb|fsc|fatf|bis|giaba|ifwg|cobac|beac|who")) {
+    return("International Bodies (IGO)")
+  } else if (str_detect(publisher, "university|journal|institute|arxiv|academic|research|oxford|harvard|mit|elsevier|cambridge|duke|science|study")) {
+    return("Academia & Research")
+  } else if (str_detect(publisher, "chainalysis|cointelegraph|ethereum|bitcoin|electric capital|consensys|kucoin|luno|iohk|cv vc|techcabal|rest of world|the economist|google scholar|stea")) {
+    return("Private Sector / Industry")
+  } else {
+    return("Other / Mixed")
+  }
+}
+
+# Apply classification
+crypto_data <- crypto_data %>%
+  mutate(Publisher_Sector = map_chr(Publisher.Organization, classify_sector))
+
+# Summarize data
+sector_plot_data <- crypto_data %>%
+  filter(Year >= 2015 & Year <= 2025) %>%
+  count(Year, Publisher_Sector)
+
+# Plot: Horizontal stacked bar with labels
+ggplot(sector_plot_data, aes(x = Year, y = n, fill = Publisher_Sector)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.7) +
+  geom_text(
+    aes(label = n),
+    position = position_stack(vjust = 0.5),
+    size = 3.5,
+    color = "white"
+  ) +
+  scale_fill_manual(values = c(
+    "Government & Regulators" = "#66c2a5",
+    "Academia & Research" = "#fc8d62",
+    "International Bodies (IGO)" = "#8da0cb",
+    "Private Sector / Industry" = "#e78ac3",
+    "Other / Mixed" = "#a6d854"
+  )) +
+  scale_x_continuous(breaks = 2015:2025) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05)), labels = scales::number_format(accuracy = 1)) +
+  labs(
+    title = "Figure 4. Composition of Document Publishers by Sector (2015–2025)",
+    subtitle = "Annual document count by publisher sector (stacked by sector)",
+    x = "Year",
+    y = "Number of Documents",
+    fill = "Publisher Sector"
+  ) +
+  coord_flip() +  # Flip chart horizontally
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, margin = margin(b = 15)),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.text = element_text(color = "black"),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(size = 12),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+library(tidyverse)
+library(scales)  # for pretty_breaks()
+
+ggplot(sector_plot_data, aes(x = Year, y = n, color = Publisher_Sector)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  geom_text(aes(label = n), vjust = -0.8, size = 3.5, show.legend = FALSE) +
+  scale_color_brewer(palette = "Dark2") +  # High-contrast, colorblind-friendly
+  scale_x_continuous(breaks = 2015:2025) +
+  scale_y_continuous(breaks = pretty_breaks(n = 6)) +  # Prevent decimal y-axis
+  labs(
+    title = "Trends in Document Publication by Sector (2015–2025)",
+    subtitle = "Government, academia, and international bodies dominate the evolving policy landscape",
+    x = "Year",
+    y = "Document Count",
+    color = "Publisher Sector"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", size = 12, margin = margin(b = 10)),
+    axis.title = element_text(face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+library(tidyverse)
+library(scales)
+
+ggplot(sector_plot_data, aes(x = Year, y = n, color = Publisher_Sector)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  geom_text(aes(label = n), vjust = -0.8, size = 3.5, show.legend = FALSE) +  # Plain text
+  scale_color_brewer(palette = "Dark2") +
+  scale_x_continuous(breaks = 2015:2025) +
+  scale_y_continuous(breaks = NULL) +  # Remove y-axis numbers
+  labs(
+    title = "Trends in Document Publication by Sector (2015–2025)",
+    subtitle = "Government, academia, and international bodies dominate the evolving policy landscape",
+    x = "Year",
+    y = "Number of Documents",
+    color = "Publisher Sector"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", size = 12, margin = margin(b = 10)),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+
+library(tidyverse)
+
+# Load your cleaned dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Define keywords for African organizations
+african_keywords <- c(
+  "africa", "kenya", "nigeria", "uganda", "rwanda", "ghana", "tanzania", "south africa",
+  "ethiopia", "zambia", "zimbabwe", "parliament", "ministry", "government", "cbk",
+  "central bank", "bank of", "commission", "authority", "cma", "namibia", "botswana",
+  "ecowas", "eac", "au", "senegal", "cabinet", "presidency", "state of", "igad"
+)
+
+# Add new column: Publisher_Region
+crypto_data <- crypto_data %>%
+  mutate(
+    Publisher_Region = if_else(
+      str_detect(str_to_lower(Publisher.Organization), str_c(african_keywords, collapse = "|")),
+      "African", "International"
+    )
+  )
+
+# Check counts for verification
+crypto_data %>% count(Publisher_Region)
+
+# Save to CSV if needed
+write_csv(crypto_data, "crypto_data_with_region.csv")
+
+
+library(tidyverse)
+
+# Data
+publisher_data <- tibble::tibble(
+  Region = c("African", "International"),
+  Count = c(42, 56)
+)
+
+# Calculate percentage and cumulative position
+publisher_data <- publisher_data %>%
+  mutate(
+    Fraction = Count / sum(Count),
+    ymax = cumsum(Fraction),
+    ymin = lag(ymax, default = 0)
+  )
+
+# Donut chart
+ggplot(publisher_data, aes(ymax = ymax, ymin = ymin, xmax = 4, xmin = 3, fill = Region)) +
+  geom_rect() +
+  coord_polar(theta = "y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  scale_fill_manual(values = c("International" = "red", "African" = "black")) +
+  annotate("text", x = 3.5, y = 0.5, label = "56%", color = "red", size = 10, fontface = "bold") +
+  labs(title = "Who Publishes on Blockchain & Crypto Policy in Africa?") +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold")
+  )
+
+
+
+library(tidyverse)
+
+# Data
+publisher_data <- tibble(
+  Region = c("African", "International"),
+  Count = c(42, 56)
+)
+
+# Calculate percentages
+publisher_data <- publisher_data %>%
+  mutate(
+    Percent = round(Count / sum(Count) * 100),
+    Region = factor(Region, levels = c("International", "African"))  # for ordering
+  )
+
+# Colors
+region_colors <- c("African" = "red", "International" = "black")
+
+# Donut chart using geom_col
+ggplot(publisher_data, aes(x = 2, y = Count, fill = Region)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  xlim(0.5, 2.5) +  # creates the donut hole
+  theme_void() +
+  scale_fill_manual(values = region_colors) +
+  annotate("text", x = 0.5, y = 0, 
+           label = paste0(publisher_data$Percent[publisher_data$Region == "African"], "%"),
+           size = 10, fontface = "bold", color = "red") +
+  labs(title = "Who Publishes on Blockchain & Crypto Policy in Africa?") +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    legend.position = "bottom"
+  )
+
+library(tidyverse)
+
+# Updated Data
+publisher_data <- tibble(
+  Region = c("African", "International"),
+  Count = c(42, 56)
+)
+
+# Calculate percentages
+publisher_data <- publisher_data %>%
+  mutate(
+    Percent = round(Count / sum(Count) * 100),
+    Region = factor(Region, levels = c("International", "African"))  # controls order
+  )
+
+# Define custom colors
+region_colors <- c("African" = "black", "International" = "red")
+
+# Create donut chart
+ggplot(publisher_data, aes(x = 2, y = Count, fill = Region)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  xlim(0.5, 2.5) +  # donut hole
+  theme_void() +
+  scale_fill_manual(values = region_colors) +
+  # Center label for the majority (International = 56%)
+  annotate("text", x = 0.5, y = 0,
+           label = paste0(publisher_data$Percent[publisher_data$Region == "International"], "%"),
+           size = 10, fontface = "bold", color = "red") +
+  labs(title = "Who Publishes on Blockchain & Crypto Policy in Africa?") +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    legend.position = "bottom"
+  )
+
+
+library(tidyverse)
+
+# Updated Data
+publisher_data <- tibble(
+  Region = c("African", "International"),
+  Count = c(42, 56)
+)
+
+# Calculate percentages
+publisher_data <- publisher_data %>%
+  mutate(
+    Percent = round(Count / sum(Count) * 100),
+    Region = factor(Region, levels = c("International", "African"))  # controls order
+  )
+
+# Define custom colors
+region_colors <- c("African" = "black", "International" = "red")
+
+# Create donut chart
+ggplot(publisher_data, aes(x = 2, y = Count, fill = Region)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  xlim(0.5, 2.5) +  # donut hole
+  theme_void() +
+  scale_fill_manual(values = region_colors) +
+  # Center label for the majority (International = 56%)
+  annotate("text", x = 0.5, y = 0,
+           label = paste0(publisher_data$Percent[publisher_data$Region == "International"], "%"),
+           size = 10, fontface = "bold", color = "red") +
+  labs(title = "Mapping the Origins of Blockchain and Crypto Policy Documents in Africa: A Publisher-Level Analysis") +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    legend.position = "right"
+  )
+
+library(ggplot2)
+
+crypto_data %>%
+  count(Year) %>%
+  ggplot(aes(x = Year, y = n)) +
+  geom_col(fill = "#3182bd") +
+  labs(title = "Number of Crypto Policy Documents per Year",
+       x = "Year", y = "Number of Documents") +
+  theme_minimal()
+
+
+library(ggplot2)
+library(dplyr)
+
+# Bar chart: Main Category (descending order, flipped)
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_col(fill = "#2b8cbe") +
+  coord_flip() +
+  labs(
+    title = "Distribution of Crypto Policy Documents by Main Category",
+    x = "Main Category",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 13)
+
+
+
+
+library(ggplot2)
+library(dplyr)
+
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_col(fill = "#2b8cbe", width = 0.7) +  # narrower bar = rounded appearance
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5) +  # label just outside bar
+  coord_flip() +
+  labs(
+    title = "Distribution of Crypto Policy Documents by Main Category",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_blank(),  # remove x-axis text
+    axis.ticks.x = element_blank(), # remove x-axis ticks
+    panel.grid.major.x = element_blank(), # remove vertical grid lines
+    plot.title = element_text(face = "bold")
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)  # space for labels
+
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot using rounded chicklet bars
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5) +
+  coord_flip() +
+  labs(
+    title = "Distribution of Crypto Policy Documents by Category",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    plot.title = element_text(face = "bold")
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot using rounded chicklet bars
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5) +
+  coord_flip() +
+  labs(
+    title = "Distribution of Crypto Policy Documents by Category",
+    x = NULL,
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(),             # Ensure y-axis (flipped x) labels are shown
+    axis.ticks.x = element_line(),            # Show ticks
+    panel.grid.major.x = element_blank(),
+    plot.title = element_text(face = "bold", hjust = 0.5)  # Center the title
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot using rounded chicklet bars
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5) +
+  coord_flip() +
+  labs(
+    title = "Distribution of Crypto Policy Documents by Category",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.text.y = element_text(face = "plain"),  # make y-axis labels non-bold
+    plot.title = element_text(face = "bold")
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)
+
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot using rounded chicklet bars with centered title and readable y-labels
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5) +
+  coord_flip() +
+  labs(
+    title = "Thematic Classification of Blockchain and Cryptocurrency Policy Documents in Africa",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.text.y = element_text(face = "plain"),
+    plot.title = element_text(face = "bold", hjust = 0.5)  # centered title
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)
+
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot with improved y-axis label visibility
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5) +
+  coord_flip() +
+  labs(
+    title = "Thematic Classification of Blockchain and Cryptocurrency Policy Documents in Africa",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.text.y = element_text(
+      face = "plain",
+      size = 13,                # Increase size
+      family = "Arial",         # Change font family (adjust if not available)
+      color = "#222222"         # Darker text for visibility
+    ),
+    plot.title = element_text(face = "bold", hjust = 0.5)
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot with centered title and improved y-axis labels
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5) +
+  coord_flip() +
+  labs(
+    title = "Thematic Classification of Blockchain and Cryptocurrency Policy Documents in Africa",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.text.y = element_text(
+      face = "plain",
+      size = 13,
+      family = "Arial",
+      color = "#222222"
+    ),
+    plot.title = element_text(
+      face = "bold",
+      size = 15,
+      hjust = 0.5,         # Center the title
+      family = "Arial"
+    ),
+    plot.title.position = "plot"  # Ensure title alignment respects hjust
+  ) +
+  expand_limits(y = max(table(cryp
+                              
+                              
+                              
+                              
+ # Load required libraries
+library(tidyverse)
+library(ggchicklet)
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create vertical bar plot
+crypto_data %>%
+  count(Year) %>%
+  filter(Year != 2016) %>%
+  mutate(Year = fct_reorder(factor(Year), Year)) %>%
+  ggplot(aes(x = Year, y = n)) +
+  geom_chicklet(
+    radius = grid::unit(5, "pt"),
+    fill = "#1f78b4",
+    width = 0.7,
+    alpha = 0.95
+  ) +
+  geom_text(
+    aes(label = n),
+    vjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Trends in Blockchain and Cryptocurrency Policy Development in Africa (2017–2025)",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    axis.text = element_text(color = "black"),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+# Load required libraries
+library(tidyverse)
+library(ggchicklet)
+
+# Read the dataset
+crypto_data <- read_csv("clean_crypto_data_africa.csv")
+
+# Create vertical bar plot
+crypto_data %>%
+  count(Year) %>%
+  filter(Year != 2016) %>%
+  mutate(Year = fct_reorder(factor(Year), Year)) %>%
+  ggplot(aes(x = Year, y = n)) +
+  geom_chicklet(
+    radius = grid::unit(5, "pt"),
+    fill = "#1f78b4",
+    width = 0.7,
+    alpha = 0.95
+  ) +
+  geom_text(
+    aes(label = n),
+    vjust = -0.3,
+    size = 4.5,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Trends in Blockchain and Cryptocurrency Policy Development in Africa (2015–2025)",
+    subtitle = "Number of Policy Documents Published by Year",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray30", margin = margin(b = 15)),
+    axis.text = element_text(color = "black"),
+    axis.text.y = element_blank(),  # removes y-axis numbers
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    plot.margin = margin(20, 20, 20, 20)
+  )
+
+
+library(topicmodels)
+library(tidytext)
+
+# Preprocessing
+tidy_summaries <- crypto_data %>%
+  select(Document.Name, Summary) %>%
+  unnest_tokens(word, Summary) %>%
+  anti_join(stop_words)
+
+# Document-term matrix
+dtm <- tidy_summaries %>%
+  count(Document.Name, word) %>%
+  cast_dtm(Document.Name, word, n)
+
+lda_model <- LDA(dtm, k = 5, control = list(seed = 123))
+topics <- tidy(lda_model, matrix = "beta")
+head(topics)
+View(topics)
+
+
+
+
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(tseries)
+
+
+# Count number of documents per year
+doc_per_year <- crypto_data %>%
+  count(Year) %>%
+  arrange(Year)
+
+# Convert to ts object (time series)
+start_year <- min(doc_per_year$Year)
+end_year <- max(doc_per_year$Year)
+ts_data <- ts(doc_per_year$n, start = start_year, end = end_year, frequency = 1)
+
+
+adf.test(ts_data)
+
+
+
+model <- auto.arima(ts_data)
+summary(model)
+
+
+# Forecast next 5 years
+forecast_values <- forecast(model, h = 5)
+
+# Plot the forecast
+autoplot(forecast_values) +
+  labs(
+    title = "Forecast of Crypto & Blockchain Policy Documents in Africa",
+    x = "Year",
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 14)
+
+
+
+# Load libraries
+library(tidyverse)
+library(forecast)
+library(tidyr)
+
+# Prepare time series: count per Main_Category per Year
+category_ts <- crypto_data %>%
+  count(Year, Main_Category) %>%
+  pivot_wider(names_from = Main_Category, values_from = n, values_fill = 0) %>%
+  arrange(Year)
+
+
+# Remove Year column for modeling
+years <- category_ts$Year
+ts_matrix <- category_ts %>% select(-Year)
+
+# Forecast next 5 years per category
+forecasts <- map(ts_matrix, ~ {
+  ts_data <- ts(.x, start = min(years), frequency = 1)
+  fit <- auto.arima(ts_data)
+  forecast(fit, h = 5)
+})
+
+
+# Extract point forecasts into a data frame
+forecast_df <- map2_dfr(forecasts, names(forecasts), function(f, name) {
+  tibble(
+    Year = max(years) + 1:5,
+    Category = name,
+    Forecast = as.numeric(f$mean)
+  )
+})
+
+# Summarize total over 5 years per category
+top_categories <- forecast_df %>%
+  group_by(Category) %>%
+  summarise(TotalForecast = sum(Forecast)) %>%
+  arrange(desc(TotalForecast))
+
+# Barplot of top 5 future categories
+top_categories %>%
+  top_n(5, TotalForecast) %>%
+  ggplot(aes(x = reorder(Category, TotalForecast), y = TotalForecast)) +
+  geom_col(fill = "#2b8cbe") +
+  coord_flip() +
+  labs(
+    title = "Projected Dominant Crypto Policy Themes in Africa (2026–2030)",
+    x = NULL, y = "Forecasted Documents (2026–2030)"
+  ) +
+  theme_minimal(base_size = 14)
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot using rounded chicklet bars
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5, family = "Arial") +
+  coord_flip() +
+  labs(
+    title = "Distribution of Blockchain & Cryptocurrency Policy Documents by Category",
+    x = NULL,
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.y = element_text(family = "Arial", size = 12, face = "bold"),
+    axis.text.x = element_text(size = 11),
+    axis.ticks.x = element_line(),
+    panel.grid.major.x = element_blank(),
+    plot.title = element_text( size = 16, hjust = 0.5)
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)
+
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ggchicklet)
+
+# Plot using rounded chicklet bars
+crypto_data %>%
+  count(Main_Category, sort = TRUE) %>%
+  ggplot(aes(x = reorder(Main_Category, n), y = n)) +
+  geom_chicklet(radius = grid::unit(5, "pt"), fill = "#2b8cbe", width = 0.7) +
+  geom_text(aes(label = n), hjust = -0.1, size = 4.5, family = "Arial") +
+  coord_flip() +
+  labs(
+    title = "Distribution of Blockchain & Cryptocurrency Policy Documents by Category",
+    x = NULL,
+    y = "Number of Documents"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.y = element_text(family = "Arial", size = 12),      # not bold, visible
+    axis.text.x = element_blank(),                                # remove x-axis numbers
+    axis.ticks.x = element_blank(),                               # remove x-axis ticks
+    panel.grid.major.x = element_blank(),
+    plot.title = element_text(size = 16, hjust = 0.5)
+  ) +
+  expand_limits(y = max(table(crypto_data$Main_Category)) * 1.1)

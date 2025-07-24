@@ -1,0 +1,264 @@
+# Load required libraries
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggthemes) # Ensure ggthemes is installed for theme_map()
+library(ggrepel)  # Load ggrepel for non-overlapping labels
+
+# Create the dataset
+stance_data <- tibble::tribble(
+  ~country_iso_a3, ~country_name,           ~policy_stance,          ~supporting_link,
+  "DZA", "Algeria", "Restrictive/Banned", "https://freemanlaw.com/cryptocurrency/algeria/",
+  "AGO", "Angola", "Restrictive/Banned", "https://www.mariblock.com/angolas-parliament-passes-law-to-regulate-digital-assets-and-crypto-mining/",
+  "BEN", "Benin", "No data found", "No data found",
+  "BWA", "Botswana", "Proactive/Regulated", "https://www.nbfira.org.bw/wp-content/uploads/2024/10/virtual-assets-act-2022.pdf",
+  "BFA", "Burkina Faso", "No data found", "No data found",
+  "BDI", "Burundi", "Restrictive/Banned", "https://news.yahoo.com/burundi-central-bank-director-strong-210028619.html",
+  "CPV", "Cabo Verde", "Proactive/Regulated", "https://furtherafrica.com/2023/04/29/digital-currency-adoption-in-cape-verde/",
+  "CMR", "Cameroon", "Cautious/Observing", "https://www.businessincameroon.com/public-management/2706-14802-cemac-zone-s-regulatory-vacuum-slows-fintech-growth-in-digital-assets",
+  "CAF", "Central African Republic", "Proactive/Regulated", "https://www.vixio.com/insights/pc-bitcoin-becomes-legal-tender-central-african-republic",
+  "TCD", "Chad", "Cautious/Observing", "https://www.beac.int/",
+  "COM", "Comoros", "No data found", "No data found",
+  "COD", "Congo, Dem. Rep. of", "Cautious/Observing", "https://coinfomania.com/cryptocurrency-regulation-in-the-democratic-republic-of-the-congo-drc/",
+  "COG", "Congo, Republic of the", "Cautious/Observing", "https://www.beac.int/",
+  "CIV", "Côte d'Ivoire", "Cautious/Observing", "https://www.bceao.int/fr/communique-presse/communique-de-presse-relatif-aux-risques-lies-lacquisition-la-detention-ou-la",
+  "DJI", "Djibouti", "No data found", "No data found",
+  "EGY", "Egypt", "Restrictive/Banned", "https://eg.andersen.com/legality-cryptocurrency-in-egypt/",
+  "GNQ", "Equatorial Guinea", "Cautious/Observing", "https://www.beac.int/",
+  "ERI", "Eritrea", "No data found", "No data found",
+  "SWZ", "Eswatini", "Cautious/Observing", "https://www.centralbank.org.sz/considerations-for-dealing-in-cryptocurrencies/" ,
+  "ETH", "Ethiopia", "Cautious/Observing", "https://dmethiolawyers.com/bitcoin-in-ethiopia-and-the-legal-regime/",
+  "GAB", "Gabon", "Cautious/Observing", "https://www.beac.int/",
+  "GMB", "Gambia, The", "No data found", "No data found",
+  "GHA", "Ghana", "Proactive/Regulated", "https://lexafrica.com/2025/06/ghana-cryptocurrency-regulation-vasp-law-september-2025/",
+  "GIN", "Guinea", "No data found", "No data found",
+  "GNB", "Guinea-Bissau", "No data found", "No data found",
+  "KEN", "Kenya", "Proactive/Regulated", "https://njagaadvocates.com/kenyas-vasp-bill-2025-regulating-crypto-protecting-investors-and-transforming-digital-finance/",
+  "LSO", "Lesotho", "Cautious/Observing", "https://www.centralbank.org.ls/index.php/press-releases-and-notices/56-public-notice-crypto-currencies-such-as-bitcoin",
+  "LBR", "Liberia", "Cautious/Observing", "https://blog.ueex.com/en-us/best-crypto-exchange-in-liberia/",
+  "LBY", "Libya", "Restrictive/Banned", "https://cbl.gov.ly/wp-content/uploads/2018/02/تحذير-المصرف-المركزي-من-العملات-الافتراضية-1.pdf",
+  "MDG", "Madagascar", "No data found", "No data found",
+  "MWI", "Malawi", "No data found", "No data found",
+  "MLI", "Mali", "No data found", "No data found",
+  "MRT", "Mauritania", "No data found", "No data found",
+  "MUS", "Mauritius", "Proactive/Regulated", "https://www.tetraconsultants.com/jurisdictions/register-company-in-mauritius/mauritius-vasp-license/",
+  "MAR", "Morocco", "Restrictive/Banned", "https://www.ammc.ma/fr/actualites/alerte-conjointe-du-ministere-de-leconomie-et-des-finances-bank-al-maghrib-et-lautori-2",
+  "MOZ", "Mozambique", "No data found", "No data found",
+  "NAM", "Namibia", "Proactive/Regulated", "https://www.scorechain.com/resources/crypto-glossary/namibia-crypto-regulations-2025",
+  "NER", "Niger", "No data found", "No data found",
+  "NGA", "Nigeria", "Proactive/Regulated", "https://www.reuters.com/world/africa/nigeria-lifts-ban-banks-dealing-crypto-2023-12-22/",
+  "RWA", "Rwanda", "Proactive/Regulated", "https://dig.watch/updates/rwanda-moves-to-regulate-virtual-assets-with-new-draft-law",
+  "STP", "Sao Tome and Principe", "No data found", "No data found",
+  "SEN", "Senegal", "Cautious/Observing", "https://www.legal500.com/guides/chapter/senegal-banking-finance/",
+  "SYC", "Seychelles", "Proactive/Regulated", "https://rue.ee/crypto-licence/seychelles/",
+  "SLE", "Sierra Leone", "No data found", "No data found",
+  "SOM", "Somalia", "No data found", "No data found", # Somaliland is usually included in Somalia's geometry in rnaturalearth.
+  "ZAF", "South Africa", "Proactive/Regulated", "https://www.wyden.io/intelligence/south-africa-s-crypto-regulations-in-2025-a-catalyst-for-digital-asset-expansion/",
+  "SSD", "South Sudan", "No data found", "No data found",
+  "SDN", "Sudan", "Cautious/Observing", "https://freemanlaw.com/cryptocurrency/sudan/",
+  "TZA", "Tanzania", "Cautious/Observing", "https://www.ippmedia.com/the-guardian/business/read/kenyas-regulatory-advances-seeking-to-inspire-tanzanias-crypto-oversight-2025-06-17-141748",
+  "TGO", "Togo", "No data found", "No data found",
+  "TUN", "Tunisia", "Restrictive/Banned", "https://www.atlanticcouncil.org/blogs/menasource/tunisias-complicated-cryptocurrency-ban-is-stifling-its-it-sector/",
+  "UGA", "Uganda", "Cautious/Observing", "https://freemanlaw.com/cryptocurrency/uganda/",
+  "ZMB", "Zambia", "Cautious/Observing", "https://www.boz.zm/PRESS-RELEASE-ON-CRYPTOCURRENCIES.pdf",
+  "ZWE", "Zimbabwe", "Proactive/Regulated", "https://coingeek.com/zimbabwe-rolls-out-blockchain-based-carbon-credit-market-system/"
+)
+
+# Get Africa map data
+africa_map_raw <- ne_countries(continent = "Africa", scale = "medium", returnclass = "sf") %>%
+  select(iso_a3, name, geometry)
+
+# --- Western Sahara Integration (retained) ---
+# Identify Morocco and Western Sahara
+morocco_ws <- africa_map_raw %>%
+  filter(iso_a3 %in% c("MAR", "ESH"))
+
+# Union their geometries
+unified_morocco_geometry <- st_union(morocco_ws$geometry)
+
+# Create a new sf object for unified Morocco
+unified_morocco_sf <- tibble(
+  iso_a3 = "MAR",
+  name = "Morocco",
+  geometry = unified_morocco_geometry
+) %>%
+  st_as_sf()
+
+# Remove original Morocco and Western Sahara, then add the unified entry
+africa_map <- africa_map_raw %>%
+  filter(!iso_a3 %in% c("MAR", "ESH")) %>%
+  bind_rows(unified_morocco_sf)
+
+# --- Somaliland Integration (handled by default rnaturalearth, add caption clarity) ---
+# In ne_countries(scale = "medium"), Somaliland's geometry is typically included
+# as part of Somalia (iso_a3 "SOM"). No specific geometry union is needed unless
+# you were using a dataset that explicitly separates them.
+# We ensure the policy stance for SOM covers the whole area.
+
+# Merge stance data with map data
+map_data <- africa_map %>%
+  left_join(stance_data, by = c("iso_a3" = "country_iso_a3")) %>%
+  mutate(policy_stance = if_else(is.na(policy_stance), "No data found", policy_stance),
+         policy_stance = factor(policy_stance,
+                                levels = c("Proactive/Regulated",
+                                           "Cautious/Observing",
+                                           "Restrictive/Banned",
+                                           "No data found")))
+
+# Recalculate centroids for country labels AFTER geometry modification
+country_centroids <- sf::st_centroid(map_data$geometry)
+map_data$lon <- sf::st_coordinates(country_centroids)[, 1]
+map_data$lat <- sf::st_coordinates(country_centroids)[, 2]
+
+# Define color palette - BRIGHTER COLORS
+stance_colors <- c(
+  "Proactive/Regulated" = "#4CAF50",    # Brighter Green (Material Design Green 500)
+  "Cautious/Observing" = "#FFC107",     # Brighter Yellow (Material Design Amber 500)
+  "Restrictive/Banned" = "#F44336",     # Brighter Red (Material Design Red 500)
+  "No data found" = "grey"          # Still Light grey
+)
+
+# Create the map
+africa_crypto_map <- ggplot(map_data) +
+  geom_sf(aes(fill = policy_stance), color = "white", linewidth = 0.2) +
+  # Use geom_text_repel for better label placement and no overlapping
+  geom_text_repel(
+    aes(x = lon, y = lat, label = name),
+    color = "black",
+    size = 2,
+    box.padding = 0.3,
+    point.padding = 0.2,
+    max.overlaps = Inf,
+    min.segment.length = 0.1,
+    segment.color = 'grey50',
+    segment.size = 0.2,
+    bg.color = "white",
+    bg.r = 0.05
+  ) +
+  scale_fill_manual(values = stance_colors, name = "Policy Stance") +
+  labs(title = "Cryptocurrency Regulation Stance in Africa",
+       subtitle = "Country-level policies on digital assets",
+       caption = "Source: Official & reputable financial/regulatory bodies (2025).") + # UPDATED CAPTION
+  theme_map() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    legend.position = c(0.05, 0.05),
+    legend.justification = c("left", "bottom"),
+    legend.background = element_rect(fill = "white", color = NA),
+    legend.box.background = element_rect(color = "black", linewidth = 0.5),
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(size = 8),
+    plot.background = element_rect(fill = "#f7f7f7", color = NA),
+    panel.background = element_rect(fill = "#f7f7f7", color = NA)
+  ) +
+  guides(fill = guide_legend(
+    title.position = "top",
+    title.hjust = 0.5,
+    direction = "vertical",
+    nrow = NULL,
+    ncol = 1,
+    keywidth = unit(1.0, "cm"),
+    keyheight = unit(0.5, "cm"),
+    override.aes = list(color = "white", size = 0.5)
+  ))
+
+# Print the plot
+print(africa_crypto_map)
+
+# To save the map in landscape orientation, use ggsave:
+# For typical landscape, width > height.
+# ggsave("africa_crypto_map.png", plot = africa_crypto_map, width = 10, height = 7, units = "in", dpi = 300)
+# ggsave("africa_crypto_map.pdf", plot = africa_crypto_map, width = 10, height = 7, units = "in")
+
+
+
+# Save as a 6.5 x 5.5 inch high-resolution PNG
+ggsave("africa_crypto_policy_map.png",
+       plot = africa_crypto_map,
+       width = 6.5,
+       height = 5.5,
+       dpi = 300,
+       units = "in",
+       bg = "white")  # ensures background matches Word
+
+
+
+# Load required libraries
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggthemes)
+library(ggrepel)
+library(ggtext)     # For better formatting if needed
+library(viridis)    # Optional: Colorblind-friendly palette
+
+# Map data and stance_data assumed already prepared as in your code...
+
+# Refine color palette (or use viridis::viridis)
+stance_colors <- c(
+  "Proactive/Regulated" = "#2E8B57",     # Sea Green
+  "Cautious/Observing"  = "#FFD700",     # Gold
+  "Restrictive/Banned"  = "#DC143C",     # Crimson
+  "No data found"       = "#D3D3D3"      # Light Grey
+)
+
+# Reproject to Robinson for smoother curves
+africa_map_proj <- st_transform(map_data, crs = "+proj=robin")
+
+# Recalculate centroids after reprojection
+centroids <- st_centroid(africa_map_proj$geometry)
+africa_map_proj$lon <- st_coordinates(centroids)[, 1]
+africa_map_proj$lat <- st_coordinates(centroids)[, 2]
+
+# Use ISO codes for label clarity (can change to name for presentations)
+africa_map_proj$label_code <- africa_map_proj$iso_a3
+
+# Create the map
+africa_crypto_map <- ggplot(africa_map_proj) +
+  geom_sf(aes(fill = policy_stance), color = "white", linewidth = 0.25) +
+  geom_text_repel(
+    aes(x = lon, y = lat, label = label_code),
+    size = 2.5,
+    fontface = "bold",
+    segment.color = "white",
+    min.segment.length = 0.1,
+    box.padding = 0.25,
+    point.padding = 0.2,
+    max.overlaps = Inf
+  ) +
+  scale_fill_manual(values = stance_colors, name = "Policy Stance") +
+  labs(
+    title = "🌍 Africa’s Cryptocurrency Policy Landscape",
+    subtitle = "Status of crypto regulation by country as of 2025",
+    caption = "Source: Official government and financial regulatory documents (2025)"
+  ) +
+  theme_map() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5, color = "#2C3E50"),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    plot.caption = element_text(size = 8, hjust = 0.95, margin = margin(t = 10)),
+    legend.position = c(0.05, 0.07),
+    legend.title = element_text(size = 9, face = "bold"),
+    legend.text = element_text(size = 8),
+    legend.background = element_rect(fill = alpha("white", 0.8), color = NA),
+    plot.background = element_rect(fill = "white", color = NA)
+  ) +
+  guides(fill = guide_legend(
+    title.position = "top",
+    title.hjust = 0.5,
+    ncol = 1,
+    keywidth = unit(1.1, "cm"),
+    keyheight = unit(0.5, "cm")
+  ))
+
+# Save the polished map
+ggsave("africa_crypto_policy_map_enhanced.png",
+       plot = africa_crypto_map,
+       width = 8,
+       height = 6.5,
+       dpi = 320,
+       bg = "white")
+
